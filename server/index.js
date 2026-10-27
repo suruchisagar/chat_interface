@@ -38,11 +38,22 @@ app.delete('/api/conversations/:id', async (req, res) => {
 });
 
 // ---- Chat endpoint with streaming (SSE) ----
+// Body: { conversationId?, prompt, tone, regenerate? }
+// regenerate: true re-answers the last prompt and replaces its saved reply.
 app.post('/api/chat', async (req, res) => {
-  const { conversationId, prompt, tone = 'professional' } = req.body;
-  if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt is required' });
+  const { conversationId, tone = 'professional', regenerate = false } = req.body;
+  let prompt = req.body.prompt;
 
   let convo = conversationId ? await Conversation.findById(conversationId) : null;
+
+  if (regenerate) {
+    const last = convo?.exchanges.at(-1);
+    if (!last) return res.status(400).json({ error: 'Nothing to regenerate' });
+    prompt = last.prompt;
+    convo.exchanges.pop(); // removed in memory only; the new reply replaces it when saved
+  }
+
+  if (!prompt?.trim()) return res.status(400).json({ error: 'Prompt is required' });
   if (!convo) convo = new Conversation({ title: prompt.slice(0, 40) });
 
   // Rebuild past turns so Gemini has context ("model" is Gemini's name for the AI role)
@@ -60,9 +71,20 @@ app.post('/api/chat', async (req, res) => {
   res.flushHeaders();
   const send = (event, data) => res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 
-  // Stop calling Gemini if the user closes the tab
+  // Stop calling Gemini if the user presses Stop or closes the tab
   const abort = new AbortController();
   res.on('close', () => { if (!res.writableEnded) abort.abort(); });
+
+  // Tell the browser the conversation id right away, so a stopped reply still belongs to this chat
+  send('meta', { conversationId: convo._id });
+
+  let fullText = '';
+  let blockReason;
+
+  const saveExchange = async (stopped) => {
+    convo.exchanges.push({ prompt, response: fullText, tone, stopped, timestamp: new Date() });
+    await convo.save();
+  };
 
   try {
     const stream = await ai.models.generateContentStream({
@@ -74,15 +96,28 @@ app.post('/api/chat', async (req, res) => {
       },
     });
 
-    let fullText = '';
-    let blockReason;
     for await (const chunk of stream) {
+      if (abort.signal.aborted) break;
       blockReason ??= chunk.promptFeedback?.blockReason;
       const text = chunk.text;
       if (text) {
         fullText += text;
         send('token', { text });
       }
+    }
+  } catch (err) {
+    if (!abort.signal.aborted) {
+      console.error(err);
+      send('error', { message: err.message ?? 'Something went wrong' });
+      return res.end();
+    }
+  }
+
+  try {
+    // User pressed Stop: keep whatever was written so far
+    if (abort.signal.aborted) {
+      if (fullText) await saveExchange(true);
+      return;
     }
 
     if (!fullText) {
@@ -95,14 +130,11 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Persist: timestamp + prompt + response
-    convo.exchanges.push({ prompt, response: fullText, tone, timestamp: new Date() });
-    await convo.save();
-
+    await saveExchange(false);
     send('done', { conversationId: convo._id, title: convo.title });
   } catch (err) {
-    if (abort.signal.aborted) return; // user left; nothing to send
     console.error(err);
-    send('error', { message: err.message ?? 'Something went wrong' });
+    send('error', { message: 'Reply was generated but could not be saved.' });
   }
   res.end();
 });

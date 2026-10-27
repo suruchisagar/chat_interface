@@ -39,8 +39,40 @@
 .composer button { padding: 0 20px; border: none; border-radius: 10px; background: #4f46e5;
   color: #fff; cursor: pointer; }
 .composer button:disabled { opacity: .5; cursor: not-allowed; }
+.composer .stop-btn { background: #dc2626; }
+
+/* ---- AI reply row: bubble + actions (Copy / Regenerate) ---- */
+.ai-row { align-self: flex-start; max-width: 70%; display: flex; flex-direction: column; gap: 4px; }
+.ai-row .bubble.ai { max-width: 100%; white-space: normal; }
+.msg-actions { display: flex; gap: 6px; align-items: center; padding-left: 4px; }
+.msg-actions button, .copy-btn { font-size: 12px; padding: 3px 10px; border-radius: 6px;
+  border: 1px solid #ddd; background: #fff; color: #555; cursor: pointer; }
+.msg-actions button:hover, .copy-btn:hover { background: #f0f0f5; }
+.stopped-tag { font-size: 12px; color: #b45309; background: #fef3c7; padding: 2px 8px; border-radius: 6px; }
+
+/* ---- Markdown inside AI bubbles ---- */
+.bubble.ai > :first-child { margin-top: 0; }
+.bubble.ai > :last-child { margin-bottom: 0; }
+.bubble.ai p { margin: 0 0 10px; }
+.bubble.ai ul, .bubble.ai ol { margin: 0 0 10px; padding-left: 22px; }
+.bubble.ai li { margin: 3px 0; }
+.bubble.ai h1, .bubble.ai h2, .bubble.ai h3 { margin: 14px 0 8px; line-height: 1.3; }
+.bubble.ai h1 { font-size: 1.3em; } .bubble.ai h2 { font-size: 1.15em; } .bubble.ai h3 { font-size: 1.05em; }
+.bubble.ai a { color: #4f46e5; }
+.bubble.ai blockquote { margin: 0 0 10px; padding-left: 12px; border-left: 3px solid #ddd; color: #555; }
+.bubble.ai :not(pre) > code { background: #f1f1f4; padding: 2px 5px; border-radius: 4px; font-size: .9em; }
+.bubble.ai table { border-collapse: collapse; margin: 0 0 10px; display: block; overflow-x: auto; }
+.bubble.ai th, .bubble.ai td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+.bubble.ai th { background: #f7f7f9; }
+
+.code-block { margin: 0 0 10px; border-radius: 8px; overflow: hidden; background: #1e1f24; }
+.code-header { display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 10px; background: #2e3038; color: #bbb; font-size: 12px; }
+.code-header .copy-btn { background: transparent; color: #ddd; border-color: #555; }
+.code-header .copy-btn:hover { background: #3a3c46; }
+.code-block pre { margin: 0; padding: 12px; overflow-x: auto; color: #e6e6e6; font-size: 13px; line-height: 1.5; }
 
 @media (max-width: 700px) {
   .sidebar { display: none; }
-  .bubble { max-width: 90%; }
+  .bubble, .ai-row { max-width: 90%; }
 }

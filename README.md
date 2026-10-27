@@ -10,11 +10,22 @@ A real-time AI chat app with streaming replies, saved conversation history and a
 - **Persistence:** every exchange is saved to MongoDB with its timestamp, user prompt, AI response and tone.
 - **Tone toggle ("Vibe Check"):** choose **Professional**, **Casual** or **Concise**. The backend adds the choice to the Gemini request as a system instruction, so the style changes from the next reply.
 
+### Extra features
+
+1. **Stop and Regenerate**
+   - **■ Stop** cancels a reply while it's streaming. The backend also stops the Gemini request, so no further tokens are used. The text written so far is kept, saved, and labeled **Stopped**.
+   - **↻ Regenerate** writes a new answer to the last prompt and replaces the old one in the database. It uses the tone selected now, so you can turn a long Professional answer into a Concise one without retyping the question.
+
+2. **Markdown formatting with copy buttons**
+   - AI replies are shown as formatted Markdown: headings, bold text, lists, tables, links and inline code. Raw `**` and `###` symbols don't appear.
+   - Code blocks show their language and have a **Copy code** button.
+   - Every AI reply has a **Copy** button.
+
 ## Tech stack
 
 | Layer    | Technology                                  |
 |----------|---------------------------------------------|
-| Frontend | React 19, Vite                              |
+| Frontend | React 19, Vite, react-markdown + remark-gfm |
 | Backend  | Node.js, Express 5                          |
 | Database | MongoDB with Mongoose                       |
 | AI       | Google Gemini API (`@google/genai` SDK)     |
@@ -140,14 +151,18 @@ Open **http://localhost:5173**.
 {
   "conversationId": "optional; leave out to start a new chat",
   "prompt": "Explain recursion",
-  "tone": "professional | casual | concise"
+  "tone": "professional | casual | concise",
+  "regenerate": false
 }
 ```
+
+Set `"regenerate": true` and leave out `prompt` to re-answer the last prompt in `conversationId`. The new reply replaces the old one. If the client disconnects (the Stop button), the server cancels the Gemini request and saves the partial reply with `stopped: true`.
 
 **Streamed events:**
 
 | Event   | Data                               | Meaning                               |
 |---------|------------------------------------|---------------------------------------|
+| `meta`  | `{ "conversationId" }`             | Sent first, with the conversation id. |
 | `token` | `{ "text": "..." }`                | The next chunk of the AI reply.       |
 | `done`  | `{ "conversationId", "title" }`    | The reply is finished and saved.      |
 | `error` | `{ "message": "..." }`             | Something went wrong.                 |
@@ -165,6 +180,7 @@ Each conversation is saved in the `conversations` collection:
       "prompt": "Explain recursion",
       "response": "Recursion is when a function calls itself...",
       "tone": "professional",
+      "stopped": false,
       "timestamp": "2026-10-27T10:15:00.000Z"
     }
   ],
