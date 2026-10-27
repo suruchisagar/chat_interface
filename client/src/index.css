@@ -1,3 +1,86 @@
+/* ---- Design tokens (light) ---- */
+:root {
+  --bg: #f7f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f2f6;
+  --sidebar: #fbfbfd;
+  --border: #e6e7ec;
+  --text: #1b1d23;
+  --text-muted: #6b7080;
+  --accent: #5b4cf0;
+  --accent-hover: #4a3bdc;
+  --accent-soft: #eeecff;
+  --accent-text: #ffffff;
+  --danger: #dc2626;
+  --warn-bg: #fef3c7;
+  --warn-text: #92400e;
+  --code-bg: #16181d;
+  --code-header: #23262e;
+  --code-text: #e6e6e6;
+  --inline-code: #f0f1f5;
+  --shadow-sm: 0 1px 2px rgba(16, 18, 27, 0.06);
+  --shadow-md: 0 6px 24px rgba(16, 18, 27, 0.08);
+  --radius: 14px;
+  --font: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+
+/* ---- Dark tokens ---- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0f1115;
+    --surface: #171a21;
+    --surface-2: #1f232c;
+    --sidebar: #12141a;
+    --border: #272b35;
+    --text: #e7e8ec;
+    --text-muted: #9097a6;
+    --accent: #8b7fff;
+    --accent-hover: #9d93ff;
+    --accent-soft: #252140;
+    --accent-text: #0f1115;
+    --warn-bg: #3a2a0c;
+    --warn-text: #fcd34d;
+    --code-bg: #0b0c10;
+    --code-header: #1a1d24;
+    --inline-code: #252a34;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0f1115;
+  --surface: #171a21;
+  --surface-2: #1f232c;
+  --sidebar: #12141a;
+  --border: #272b35;
+  --text: #e7e8ec;
+  --text-muted: #9097a6;
+  --accent: #8b7fff;
+  --accent-hover: #9d93ff;
+  --accent-soft: #252140;
+  --accent-text: #0f1115;
+  --warn-bg: #3a2a0c;
+  --warn-text: #fcd34d;
+  --code-bg: #0b0c10;
+  --code-header: #1a1d24;
+  --inline-code: #252a34;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
-body { font-family: system-ui, 'Segoe UI', Roboto, sans-serif; background: #f4f5f7; }
+body {
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+textarea { font: inherit; }
